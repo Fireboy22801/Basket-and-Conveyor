@@ -6,14 +6,15 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
-    private Food food;
-
     [SerializeField] private Transform handIKTarget;
-    [SerializeField] private Transform rightHand;
+    [SerializeField] private HandCollider hand;
     [SerializeField] private Vector3 foodOfSet;
 
     public float speed = 1.0f;
-    public Animator animator;
+
+    private Animator animator;
+    private AnimRig animRig;
+    private Food food;
 
     private bool hasFood = false;
     private bool triggerEntered = false;
@@ -22,6 +23,7 @@ public class GameManager : MonoBehaviour
     {
         instance = this;
         animator = GetComponent<Animator>();
+        animRig = GetComponent<AnimRig>();
     }
 
     private void Update()
@@ -37,30 +39,38 @@ public class GameManager : MonoBehaviour
                     if (hit.collider.CompareTag("Food"))
                     {
                         food = hit.collider.GetComponent<Food>();
+
+                        handIKTarget.position = food.transform.position;
+
+                        handIKTarget.SetParent(food.transform);
+
                         animator.SetTrigger("GrabItem");
-                        StartCoroutine(UpdateHandIKTargetPosition(food.transform));
+
+                        animRig.Follow(true);
+
+                        //StartCoroutine(UpdateHandIKTargetPosition(food.transform));
                     }
                 }
             }
         }
     }
 
-    IEnumerator UpdateHandIKTargetPosition(Transform target)
+    IEnumerator UpdateHandIKTargetPosition()
     {
         while (!triggerEntered)
         {
-            handIKTarget.position = target.position;
+            handIKTarget.position = food.transform.position;
             yield return null;
         }
     }
 
     public void TakeFood()
     {
-        food.tag = "Untagged";
+        /*food.tag = "Untagged";
         triggerEntered = true;
         hasFood = true;
         animator.SetTrigger("PutItemInBasket");
-        StartCoroutine(FoodFollowingHand());
+        StartCoroutine(FoodFollowingHand());*/
     }
 
     IEnumerator FoodFollowingHand()
@@ -69,7 +79,7 @@ public class GameManager : MonoBehaviour
         {
             while (hasFood)
             {
-                food.transform.position = rightHand.position + foodOfSet;
+                food.transform.position = hand.transform.position + foodOfSet;
                 yield return null;
             }
         }
