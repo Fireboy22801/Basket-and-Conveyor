@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
     [SerializeField] private Transform handIKTarget;
+    [SerializeField] private Transform Basket;
     [SerializeField] private HandCollider hand;
     [SerializeField] private Vector3 foodOfSet;
 
@@ -16,7 +18,6 @@ public class GameManager : MonoBehaviour
     private AnimRig animRig;
     private Food food;
 
-    private bool hasFood = false;
     private bool triggerEntered = false;
 
     private void Awake()
@@ -30,7 +31,7 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (!hasFood)
+            if (food == null)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
@@ -40,15 +41,9 @@ public class GameManager : MonoBehaviour
                     {
                         food = hit.collider.GetComponent<Food>();
 
-                        handIKTarget.position = food.transform.position;
+                        animRig.FollowFood(true);
 
-                        handIKTarget.SetParent(food.transform);
-
-                        animator.SetTrigger("GrabItem");
-
-                        animRig.Follow(true);
-
-                        //StartCoroutine(UpdateHandIKTargetPosition(food.transform));
+                        StartCoroutine(UpdateHandIKTargetPosition());
                     }
                 }
             }
@@ -66,33 +61,27 @@ public class GameManager : MonoBehaviour
 
     public void TakeFood()
     {
-        /*food.tag = "Untagged";
+        food.tag = "Untagged";
         triggerEntered = true;
-        hasFood = true;
-        animator.SetTrigger("PutItemInBasket");
-        StartCoroutine(FoodFollowingHand());*/
+
+        food.GetComponent<Rigidbody>().isKinematic = true;
+        food.transform.SetParent(animRig.rigs[2].transform);
+        food.transform.localPosition = Vector3.zero;
+
+        animRig.Put(true);
     }
 
-    IEnumerator FoodFollowingHand()
-    {
-        if (food != null)
-        {
-            while (hasFood)
-            {
-                food.transform.position = hand.transform.position + foodOfSet;
-                yield return null;
-            }
-        }
-    }
 
-    private IEnumerator DropFood()
+    public void DropFood()
     {
-        hasFood = false;
         triggerEntered = false;
+        food.transform.SetParent(Basket);
+        food.transform.localPosition = Vector3.zero; 
         food = null;
 
-        yield return new WaitForSeconds(1);
-        animator.SetTrigger("Idle");
+        animRig.Idle();
+
+        animator.Play("Idle");
     }
 
 }
