@@ -1,5 +1,6 @@
 using System.Collections;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -20,7 +21,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private GameObject dropFoodeffect;
 
-    public float speed = 1.0f;
+    public float speed = 1f;
 
     private Animator animator;
     private AnimRig animRig;
@@ -40,20 +41,25 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {
             if (!hasFoodInHand)
             {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
                 RaycastHit hit;
                 if (Physics.Raycast(ray, out hit))
                 {
                     if (hit.collider.CompareTag("Food"))
                     {
                         if (food != null)
+                        {
                             shouldFollow = false;
+                            food.tag = "Food";
+                        }
 
                         food = hit.collider.GetComponent<Food>();
+
+                        food.tag = "CurrentFood";
 
                         animRig.FollowFood(true);
 
@@ -66,11 +72,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
     IEnumerator UpdateHandIKTargetPosition()
     {
         while (shouldFollow)
         {
-            handIKTarget.position = food.transform.position;
+            if (food != null)
+                handIKTarget.position = Vector3.MoveTowards(handIKTarget.position, food.transform.position, speed * Time.deltaTime);
+            else
+            {
+                animRig.FollowFood(false);
+            }
+
             yield return null;
         }
     }
@@ -96,7 +109,6 @@ public class GameManager : MonoBehaviour
         shouldFollow = false;
 
         food.transform.SetParent(Basket);
-        food.transform.localPosition = Vector3.zero;
 
         AddPoint(food.transform);
         CollectFruit(food.fruitIndex);

@@ -11,7 +11,7 @@ public class HandCollider : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Food")
+        if (other.tag == "CurrentFood")
         {
             gameManager.TakeFood();
         }
