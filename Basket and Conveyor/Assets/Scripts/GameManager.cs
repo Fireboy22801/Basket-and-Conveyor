@@ -1,5 +1,7 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,8 +10,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform handIKTarget;
     [SerializeField] private Transform Basket;
     [SerializeField] private HandCollider hand;
-    [SerializeField] private Vector3 foodOfSet;
-    [SerializeField] private QuestGenerator questGenerator;
+    [SerializeField] private GameObject questGenerator;
+    [SerializeField] private GameObject conveyor;
+
+    [Header("UI")]
+    [SerializeField] private GameObject levelPassedText;
+    [SerializeField] private GameObject nextLevelButton;
+    [SerializeField] private GameObject floatingTextPrefab;
+
+    [SerializeField] private GameObject dropFoodeffect;
 
     public float speed = 1.0f;
 
@@ -76,17 +85,22 @@ public class GameManager : MonoBehaviour
         food.transform.localPosition = Vector3.zero;
 
         animRig.Put(true);
-
-        CollectFruit(food.fruitIndex);
     }
 
 
     public void DropFood()
     {
+        GameObject effect = Instantiate(dropFoodeffect, Basket.transform.position, Quaternion.identity);
+        Destroy(effect, 3f);
+
         shouldFollow = false;
 
         food.transform.SetParent(Basket);
         food.transform.localPosition = Vector3.zero;
+
+        AddPoint(food.transform);
+        CollectFruit(food.fruitIndex);
+
         food = null;
 
         animRig.Idle();
@@ -99,11 +113,28 @@ public class GameManager : MonoBehaviour
     public void CollectFruit(int fruitIndex)
     {
         collectedQuantities[fruitIndex]++;
-        questGenerator.CheckQuestCompletion(collectedQuantities);
+        questGenerator.GetComponent<QuestGenerator>().CheckQuestCompletion(collectedQuantities);
     }
 
     public void GameOver()
     {
-        Debug.Log("GameOver");
+        conveyor.SetActive(false);
+        questGenerator.SetActive(false);
+
+        animator.SetTrigger("Dance");
+
+        levelPassedText.SetActive(true);
+        nextLevelButton.SetActive(true);
+    }
+
+    private void AddPoint(Transform transform)
+    {
+        GameObject floatingText = Instantiate(floatingTextPrefab, transform.position + Vector3.up, Quaternion.identity);
+        floatingText.GetComponent<TextMeshPro>().text = "+1";
+    }
+
+    public void NextLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

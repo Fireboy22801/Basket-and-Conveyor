@@ -6,7 +6,6 @@ public class Spawner : MonoBehaviour
     [SerializeField] private GameObject[] prefabs;
     [SerializeField] private int timeToSpawn;
 
-
     private List<GameObject> pool = new List<GameObject>();
     private float timer;
     private System.Random rand = new System.Random();

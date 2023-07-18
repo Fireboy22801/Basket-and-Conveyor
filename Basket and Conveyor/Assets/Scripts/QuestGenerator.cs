@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class QuestGenerator : MonoBehaviour
 {
-    [SerializeField] private TMP_Text text;
-
     private System.Random rand = new System.Random();
 
     private string[] products = new string[] { "Apple", "Avocado", "Banana", "Cherrie", "Lemon",
@@ -24,9 +22,9 @@ public class QuestGenerator : MonoBehaviour
     {
         questProductIndex = rand.Next(products.Length);
         product = products[questProductIndex];
-        quantity = rand.Next(1, 2);
+        quantity = rand.Next(1, 6);
 
-        text.text = $"Collect {quantity} {product}" + (quantity > 1 ? "s" : "");
+        GetComponent<TMP_Text>().text = $"Collect {quantity} {product}" + (quantity > 1 ? "s" : "");
     }
 
     public void CheckQuestCompletion(int[] collectedQuantities)
