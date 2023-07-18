@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     [SerializeField] private Transform handIKTarget;
-    [SerializeField] private Transform Basket;
+    [SerializeField] private GameObject basket;
     [SerializeField] private HandCollider hand;
     [SerializeField] private GameObject questGenerator;
     [SerializeField] private GameObject conveyor;
@@ -103,12 +103,12 @@ public class GameManager : MonoBehaviour
 
     public void DropFood()
     {
-        GameObject effect = Instantiate(dropFoodeffect, Basket.transform.position, Quaternion.identity);
+        GameObject effect = Instantiate(dropFoodeffect, basket.transform.position, Quaternion.identity);
         Destroy(effect, 3f);
 
         shouldFollow = false;
 
-        food.transform.SetParent(Basket);
+        food.transform.SetParent(basket.transform);
 
         AddPoint(food.transform);
         CollectFruit(food.fruitIndex);
@@ -131,12 +131,15 @@ public class GameManager : MonoBehaviour
     public void GameOver()
     {
         conveyor.SetActive(false);
+        basket.SetActive(false);
         questGenerator.SetActive(false);
 
         animator.SetTrigger("Dance");
 
         levelPassedText.SetActive(true);
         nextLevelButton.SetActive(true);
+
+        StartCoroutine(MoveCameraForward());
     }
 
     private void AddPoint(Transform transform)
@@ -149,4 +152,16 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
+
+    IEnumerator MoveCameraForward()
+    {
+        float elapsedTime = 0;
+        while (elapsedTime < 2)
+        {
+            Camera.main.transform.Translate(Vector3.forward * Time.deltaTime);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+    }
+
 }
